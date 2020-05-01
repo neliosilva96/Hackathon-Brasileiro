@@ -1,0 +1,65 @@
+<IfModule mod_rewrite.c>
+	Options +FollowSymLinks
+	RewriteEngine On
+	# ensure www.
+	RewriteCond %{HTTP_HOST} !^www\. [NC]
+	RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+	RewriteCond     %{SERVER_PORT} ^80$
+	RewriteRule     ^(.*)$ https://%{SERVER_NAME}%{REQUEST_URI} [L,R]
+
+  	ErrorDocument 404 /index.html?paginas=404
+  	RewriteCond %{HTTP_HOST} !/admin/ [NC]
+  	RewriteCond %{HTTP_HOST} !/asset/ [NC]
+  	
+ 	RewriteCond %{HTTP_HOST} !/images [NC]
+
+
+    RewriteCond %{HTTP_USER_AGENT} googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator [NC,OR]
+    RewriteCond %{QUERY_STRING} _escaped_fragment_
+        RewriteRule ^([a-z0-9]+)?$ http://service.prerender.io/%{REQUEST_SCHEME}://%{HTTP_HOST}/pt [P,QSA]
+    RewriteCond %{HTTP_USER_AGENT} googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator [NC,OR]
+    RewriteCond %{QUERY_STRING} _escaped_fragment_
+        RewriteRule ^([a-z0-9]+)/?$ http://service.prerender.io/%{REQUEST_SCHEME}://%{HTTP_HOST}/$1 [P,QSA]
+    RewriteCond %{HTTP_USER_AGENT} googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator [NC,OR]
+    RewriteCond %{QUERY_STRING} _escaped_fragment_
+        RewriteRule ^([a-z0-9]+)/([a-z0-9]+)/?$ http://service.prerender.io/%{REQUEST_SCHEME}://%{HTTP_HOST}/$1/$2 [P,QSA]
+    RewriteCond %{HTTP_USER_AGENT} googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator [NC,OR]
+    RewriteCond %{QUERY_STRING} _escaped_fragment_
+        RewriteRule ^([a-z0-9]+)/([a-z0-9]+)/([0-9]+)/(.*)/?$ http://service.prerender.io/%{REQUEST_SCHEME}://%{HTTP_HOST}/$1/$2/$3/$4 [P,QSA]
+    RewriteCond %{REQUEST_URI} !^/sitemap\.xml$ 
+    RewriteCond %{HTTP_USER_AGENT} googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator [NC,OR]
+    RewriteCond %{QUERY_STRING} _escaped_fragment_
+    RewriteRule (.*)?$ http://service.prerender.io/%{REQUEST_SCHEME}://%{HTTP_HOST}/pt [P,QSA]
+   
+    RewriteCond %{HTTP_USER_AGENT} !^googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator [NC,OR]
+        RewriteRule ^([a-z0-9]+)/?$ index.html?lang=$1 [L,QSA]  
+    RewriteCond %{HTTP_USER_AGENT} !^googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator [NC,OR]
+        RewriteRule ^([a-z0-9]+)/([a-z0-9]+)/?$ index.html?lang=$1&paginas=$2 [L,QSA]
+    RewriteCond %{HTTP_USER_AGENT} !^googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|rogerbot|linkedinbot|embedly|quora\ link\ preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator [NC,OR]
+        RewriteRule ^([a-z0-9]+)/([a-z0-9]+)/([0-9]+)/(.*)/?$  index.html?lang=$1&paginas=$2&id_produto=$3 [L,QSA]
+	
+</IfModule>
+<FilesMatch "\.(ttf|otf|eot|woff)$">  
+    <IfModule mod_headers.c>
+        Header set Access-Control-Allow-Origin "*"
+    </IfModule>
+</FilesMatch>
+
+ExpiresActive On
+ExpiresDefault A0
+ 
+# 1 YEAR - doesn't change often
+<FilesMatch "\.(flv|ico|pdf|avi|mov|ppt|doc|mp3|wmv|wav)$">
+ExpiresDefault A31536000
+</FilesMatch>
+
+# 1 WEEK - possible to be changed, unlikely
+<FilesMatch "\.(jpg|jpeg|png|gif|swf|js|css|xml)$">
+ExpiresDefault A604800
+</FilesMatch>
+
+# 3 HOUR - core content, changes quickly
+<FilesMatch "\.(txt|)$">
+ExpiresDefault A86400 
+</FilesMatch>

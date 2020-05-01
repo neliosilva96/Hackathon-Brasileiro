@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+
+    <head>
+        <base href="/">
+        <link rel="stylesheet" type="text/css" href="assets\css\bootstrap.min.css">       
+        <link rel="stylesheet" type="text/css" href="assets\css\themify-icons.css">    
+        <link rel="stylesheet" type="text/css" href="assets\css\feather.css">
+        <link rel="stylesheet" type="text/css" href="assets\css\style.css">
+        <link rel="stylesheet" type="text/css" href="assets\css\jquery.mCustomScrollbar.css">
+        <link rel="stylesheet" type="text/css" href="assets\css\dataTables.bootstrap4.min.css">   
+
+    </head>
+    <body ng-controller="CONTROLER_BODY">
+        <div ui-view="LOGIN" ng-if="!CONF.LOGADO"></div>
+        <div ui-view="BODY" ng-if="CONF.LOGADO"></div>
+       
+    </body>
+
+    <script type="text/javascript" src="assets\js\jquery.min.js"></script>
+    <script type="text/javascript" src="https://web.wsis.pt/js/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.9/angular.min.js"></script>
+    <script type="text/javascript" src="https://web.wsis.pt/js/angular/angular-ui-router.js"></script>
+    <script type="text/javascript" src="https://web.wsis.pt/js/angular/angular-cookies.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+
+    <script src="assets\js\pcoded.min.js"></script>    
+    <script src="assets\js\vartical-layout.min.js"></script>
+    <script src="assets\js\jquery.mCustomScrollbar.concat.min.js"></script>
+    <script src="assets\js\popper.min.js"></script>
+    <script src="assets\js\bootstrap.min.js"></script> 
+    <script src="assets\js\jquery.dataTables.min.js"></script>
+    <script src="assets\js\dataTables.bootstrap4.min.js"></script>
+
+    <script type="text/javascript" src="assets\js\script.js"></script>
+    <script>
+        var myApp = angular.module('myApp', ['ui.router', 'ngCookies']);
+     
+        myApp.config(function ($stateProvider, $locationProvider) {
+            $stateProvider.state('home', {
+                url: '',
+                views: {
+                    'LOGIN': {
+                        templateUrl: 'INCLUDES/login.html', controller: "CONTROLER_LOGIN"
+                    },
+                    'BODY': {
+                        templateUrl: 'INCLUDES/body.html', controller: "CONTROLER_BOD"
+                    }
+                }
+            });
+            $stateProvider.state('HREF', {
+                url: '/:ecra',
+                views: {
+                    'LOGIN': {
+                        templateUrl: 'INCLUDES/login.html', controller: "CONTROLER_LOGIN"
+                    },
+                    'BODY': {
+                        templateUrl: 'INCLUDES/body.html', controller: "CONTROLER_BOD"
+                    }
+                }
+            });
+            $locationProvider.html5Mode(true);
+        });
+       
+        myApp.controller("CONTROLER_BODY", function ($rootScope, $scope, $http, $cookies, $stateParams, $state, $location) {
+            $rootScope.CONF = {};
+            $rootScope.globalsback = $cookies.getObject('globalsback') || {};        
+            if ($rootScope.globalsback != {})
+            {
+                var OBJ = {};
+                OBJ["user"] = $rootScope.globalsback;
+                REQUESTPOST("bank/token",  OBJ, false)
+                .then(function (response) {                 
+                    if (response.status == 'OK')         
+                    {
+                        $rootScope.USER= response.response;
+                        $rootScope.CONF.LOGADO = true;     
+                    }       
+                    else
+                        $rootScope.CONF.LOGADO = false;  
+                    $rootScope.$apply();
+                });
+            }
+            else
+                $rootScope.CONF.LOGADO = false;            
+        });        
+        myApp.controller("CONTROLER_LOGIN", function ($rootScope, $scope, $http, $cookies, $stateParams, $state, $location) {
+            $rootScope.JSON_LOGIN = { user : {} } ;
+            $rootScope.LOGIN_CLICK = function () {
+                LOGIN_CLICK($rootScope, $scope, $http, $cookies, $stateParams, $state, $location);
+            };
+        });
+
+        myApp.controller("CONTROLER_BOD", function ($rootScope, $scope, $http, $cookies, $stateParams, $state, $location) {
+            START_MENU();   
+            $rootScope.CONF.ecra = $stateParams.ecra;
+            $rootScope.LOGOUT_CLICK = function () {
+                LOGOUT_CLICK($rootScope, $scope, $http, $cookies, $stateParams, $state, $location);
+            };         
+        });
+
+        myApp.controller("CLIENTES", function ($rootScope, $scope, $http, $cookies, $stateParams, $state, $location) {
+            
+      
+            REQUESTPOST("bank/token",  "", false)
+            .then(function (response) {       
+                $rootScope.CLIENTES = [
+                    {
+                        NOME :"NOME"
+                    }
+                ]    
+                $rootScope.$apply();
+                START_DATATABLE()                
+            });
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function LOGOUT_CLICK($rootScope, $scope, $http, $cookies, $stateParams, $state, $location)
+        {
+            $rootScope.globalsback = {};
+            $cookies.remove('globalsback');
+            $rootScope.CONF.LOGADO = false;
+        }
+        function LOGIN_CLICK($rootScope, $scope, $http, $cookies, $stateParams, $state, $location)
+        {
+            $rootScope.SENDFORM = true;
+
+            INPUT_TEXT_NOTEMPTY($rootScope, $rootScope.JSON_LOGIN.user, 'JSON_LOGIN.user', "email");
+            INPUT_TEXT_NOTEMPTY($rootScope, $rootScope.JSON_LOGIN.user, 'JSON_LOGIN.user', "password");
+            if (!$rootScope.SENDFORM) {
+                alertme("Falta preencher algum campo", 1);
+                return false;
+            }
+
+            REQUESTPOST("bank/login",  $rootScope.JSON_LOGIN, true)
+            .done(function (response) {
+                if (response.status == 'OK')
+                {
+                    $rootScope.globalsback = response.response;                  
+                    var cookieExp = new Date();
+                    cookieExp.setDate(cookieExp.getDate() + 7);
+                    $cookies.putObject('globalsback', $rootScope.globalsback, { expires: cookieExp });
+                    location.reload();
+                }             
+            });          
+        }
+    
+        function REQUESTPOST(op, data, mensagem)
+        {
+            var settings = {
+                "url": "https://infinite-fortress-20170.herokuapp.com/api/" + op,
+                "method": "POST",
+                "timeout": 0,
+                "headers": {
+                    "Content-Type":'application/x-www-form-urlencoded'
+                },
+                "data": data,
+            };
+
+            return $.ajax(settings).done(function (response) {               
+                if ((response.status == 'NOK') && mensagem)
+                    alertme(response.message);
+            });
+        }
+       
+        function alertme(msg)
+        {
+            alert(msg);
+        }
+
+        function INPUT_TEXT_NOTEMPTY($scope, $JSON, OBJ, CAMPO)
+        {
+            var element = angular.element('[ng-model="'+OBJ +"."+ CAMPO + '"]').blur();
+            var element1 = angular.element('[model="'+OBJ +"."+ CAMPO + '"]').blur();
+            Class_Remove_Faltaprencher(element);
+            Class_Remove_Faltaprencher(element1);
+            if(($JSON[CAMPO] === undefined)||($JSON[CAMPO] === '')||!(CAMPO in $JSON)||($JSON[CAMPO] === null))
+            {
+                console.log("Falta Preencher :" + CAMPO);
+                $scope.SENDFORM = false;
+                Class_Add_Faltaprencher(element);
+                Class_Add_Faltaprencher(element1);
+            }
+            
+        }
+
+        function Class_Remove_Faltaprencher(elemento) {
+            Class_Remove(elemento, "faltaprencher");
+        }
+        function Class_Add_Faltaprencher(elemento) {
+            Class_Add(elemento, "faltaprencher");
+        }
+        function Class_Add(elemendo, classname) {
+            elemendo.addClass(classname);
+        }
+        function Class_Remove(elemendo, classname) {
+            elemendo.removeClass(classname);
+        }
+
+    </script>
+</html>
