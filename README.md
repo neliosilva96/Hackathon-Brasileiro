@@ -3,7 +3,4 @@ Hackathon Florish
 
 https://www.megahack.com.br/resultados-2-edicao/
 
-
-
-
-Consiste num backoffice web ligado a uma api em laravel para mostrar investimentos dos utilizadores de uma aplicação movel.
+Backoffice web com o objectivo de consultar investimentos feitos pelos utilizadores de uma aplicação movel.
